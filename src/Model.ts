@@ -185,4 +185,3 @@ export class Model<T> {
     if (this.pastData) this.data = JSON.parse(JSON.stringify(this.pastData));
   }
 }
-individually
