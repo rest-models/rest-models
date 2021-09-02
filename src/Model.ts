@@ -139,7 +139,11 @@ export class Model<T> {
       }
     }
   }
-
+  
+  async flush() {
+    api.get(this.url())
+      .then(this.setData)
+  }
   /**
    * Changes
    */
@@ -179,3 +183,4 @@ export class Model<T> {
     if (this.pastData) this.data = JSON.parse(JSON.stringify(this.pastData));
   }
 }
+individually
