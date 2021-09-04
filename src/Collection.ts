@@ -53,6 +53,6 @@ export class Collection<T> {
   }
 
   private createModel(initialData: T) {
-    return new Model<T>({ url: this.url }, initialData);
+    return new Model<T>({ url: this.url }, initialData, this);
   }
 }

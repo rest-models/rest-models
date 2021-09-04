@@ -32,11 +32,11 @@ function __awaiter(thisArg, _arguments, P, generator) {
 }
 
 class Model {
-    // TODO: analisar ligação com uma Collection
-    constructor(modelConfig, data) {
+    constructor(modelConfig, data, collection) {
         this.data = null;
         this.pastData = null;
         this.loading = false;
+        this.collection = null;
         this.modelConfig = {
             url: "",
             primaryKey: "id",
@@ -46,6 +46,9 @@ class Model {
         this.modelConfig = Object.assign(Object.assign({}, this.modelConfig), modelConfig);
         if (data) {
             this.data = data;
+        }
+        if (collection) {
+            this.collection = collection;
         }
     }
     setPastData(data) {
@@ -110,6 +113,11 @@ class Model {
                     else {
                         response = yield api.post(this.url(), this.data);
                     }
+                    if (this.collection)
+                        yield this.collection.fetch();
+                }
+                else {
+                    throw new Error(`You can't save the model without data.`);
                 }
                 this.setData(response.data);
                 this.setPastData(null);
@@ -147,6 +155,8 @@ class Model {
             if (this.data) {
                 try {
                     yield api.delete(this.url());
+                    if (this.collection)
+                        yield this.collection.fetch();
                 }
                 catch (err) {
                     throw new Error("Failed to delete model!");
@@ -234,7 +244,7 @@ class Collection {
         return this.list.find((data) => data.id === primaryKey);
     }
     createModel(initialData) {
-        return new Model({ url: this.url }, initialData);
+        return new Model({ url: this.url }, initialData, this);
     }
 }
 

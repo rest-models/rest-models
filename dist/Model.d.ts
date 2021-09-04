@@ -1,3 +1,4 @@
+import { Collection } from "./Collection";
 declare type EditMethod = "patch" | "put";
 declare type ModelConfig = {
     url: string;
@@ -8,9 +9,10 @@ export declare class Model<T> {
     private data;
     private pastData;
     private loading;
+    private collection;
     private modelConfig;
     private setPastData;
-    constructor(modelConfig: ModelConfig, data?: T);
+    constructor(modelConfig: ModelConfig, data?: T, collection?: Collection<T>);
     private setLoading;
     get isLoading(): boolean;
     get id(): any;

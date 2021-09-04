@@ -1,6 +1,7 @@
 import { AxiosResponse } from "axios";
 import { makeAutoObservable } from "mobx";
 import { api } from "./api";
+import { Collection } from "./Collection";
 
 type EditMethod = "patch" | "put";
 
@@ -14,6 +15,7 @@ export class Model<T> {
   private data: T | null = null;
   private pastData: T | null = null;
   private loading = false;
+  private collection: Collection<T> | null = null;
   private modelConfig: ModelConfig = {
     url: "",
     primaryKey: "id",
@@ -24,14 +26,16 @@ export class Model<T> {
     this.pastData = data;
   }
 
-  // TODO: analisar ligação com uma Collection
-  constructor(modelConfig: ModelConfig, data?: T) {
+  constructor(modelConfig: ModelConfig, data?: T, collection?: Collection<T>) {
     makeAutoObservable(this, {}, { autoBind: true });
 
     this.modelConfig = { ...this.modelConfig, ...modelConfig };
 
     if (data) {
       this.data = data;
+    }
+    if (collection) {
+      this.collection = collection;
     }
   }
 
@@ -110,6 +114,10 @@ export class Model<T> {
         } else {
           response = await api.post(this.url(), this.data);
         }
+
+        if (this.collection) await this.collection.fetch();
+      } else {
+        throw new Error(`You can't save the model without data.`);
       }
 
       this.setData(response.data);
@@ -147,6 +155,7 @@ export class Model<T> {
     if (this.data) {
       try {
         await api.delete(this.url());
+        if (this.collection) await this.collection.fetch();
       } catch (err) {
         throw new Error("Failed to delete model!");
       } finally {
