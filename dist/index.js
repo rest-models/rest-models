@@ -41,7 +41,7 @@ function __awaiter(thisArg, _arguments, P, generator) {
 
 class Model {
     // TODO: analisar ligação com uma Collection
-    constructor(modelConfig) {
+    constructor(modelConfig, data) {
         this.data = null;
         this.pastData = null;
         this.loading = false;
@@ -52,6 +52,9 @@ class Model {
         };
         mobx.makeAutoObservable(this, {}, { autoBind: true });
         this.modelConfig = Object.assign(Object.assign({}, this.modelConfig), modelConfig);
+        if (data) {
+            this.data = data;
+        }
     }
     setPastData(data) {
         this.pastData = data;
@@ -69,8 +72,7 @@ class Model {
         this.data = data;
     }
     set(data) {
-        const dataKeys = Object.keys(data);
-        if (dataKeys.includes("id"))
+        if (Object.keys(data).includes("id"))
             console.warn("We discourage changing the id value.");
         if (this.data) {
             const newData = Object.assign(Object.assign({}, this.data), data);
@@ -81,7 +83,7 @@ class Model {
             this.data = newData;
         }
     }
-    // TODO: implementar overloadings para quando não apssar um parâmetro saber que virá apenas T
+    // TODO: implementar overloadings para quando não passar um parâmetro saber que virá apenas T
     // TODO: "species.name" -> bulbasaur
     get(param) {
         if (param && !this.data[param])
@@ -128,6 +130,22 @@ class Model {
             }
         });
     }
+    flush() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.setLoading(true);
+            try {
+                const response = yield api.get(this.url());
+                this.setData(response.data);
+                this.setPastData(null);
+            }
+            catch (err) {
+                throw new Error(`Wasn't possible to reload data. \n\n ${err.message}`);
+            }
+            finally {
+                this.setLoading(false);
+            }
+        });
+    }
     remove() {
         return __awaiter(this, void 0, void 0, function* () {
             this.setLoading(true);
@@ -137,8 +155,6 @@ class Model {
             if (this.data) {
                 try {
                     yield api.delete(this.url());
-                    this.setData(null);
-                    this.setPastData(null);
                 }
                 catch (err) {
                     throw new Error("Failed to delete model!");
@@ -192,6 +208,9 @@ class Collection {
     get list() {
         return this.data;
     }
+    get rawList() {
+        return this.data.map((model) => model.get());
+    }
     fetch(params) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -208,24 +227,22 @@ class Collection {
             }
         });
     }
-    get(primaryKey) {
+    fetchOne(primaryKey) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const cachedData = this.list.find((data) => data.id === primaryKey);
-                if (cachedData)
-                    return cachedData;
                 const response = yield api.get(`${this.url}/${primaryKey}`);
                 return this.createModel(response.data);
             }
-            catch (err) {
-                throw new Error("Wasn't possible to connect to this api's endpoint.");
+            catch (error) {
+                throw new Error(`Failed to fetch data! \n\n ${error.message}`);
             }
         });
     }
+    get(primaryKey) {
+        return this.list.find((data) => data.id === primaryKey);
+    }
     createModel(initialData) {
-        const model = new Model({ url: this.url });
-        model.setData(initialData);
-        return model;
+        return new Model({ url: this.url }, initialData);
     }
 }
 

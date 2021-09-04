@@ -25,10 +25,14 @@ export class Model<T> {
   }
 
   // TODO: analisar ligação com uma Collection
-  constructor(modelConfig: ModelConfig) {
+  constructor(modelConfig: ModelConfig, data?: T) {
     makeAutoObservable(this, {}, { autoBind: true });
 
     this.modelConfig = { ...this.modelConfig, ...modelConfig };
+
+    if (data) {
+      this.data = data;
+    }
   }
 
   private setLoading(loading: boolean) {
@@ -143,8 +147,6 @@ export class Model<T> {
     if (this.data) {
       try {
         await api.delete(this.url());
-        this.setData(null);
-        this.setPastData(null);
       } catch (err) {
         throw new Error("Failed to delete model!");
       } finally {

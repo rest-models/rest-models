@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from "axios";
 import { Model } from "./Model";
 export declare class Collection<T> {
     private url;
@@ -5,7 +6,9 @@ export declare class Collection<T> {
     constructor(url: string);
     private setData;
     get list(): Model<T>[];
-    fetch(params?: Record<string, unknown>): Promise<void>;
-    get(primaryKey: number | string): Promise<Model<T>>;
+    get rawList(): T[];
+    fetch(params?: AxiosRequestConfig["params"]): Promise<void>;
+    fetchOne(primaryKey: number | string): Promise<Model<T>>;
+    get(primaryKey: number | string): Model<T>;
     private createModel;
 }

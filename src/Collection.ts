@@ -18,6 +18,10 @@ export class Collection<T> {
     return this.data;
   }
 
+  get rawList() {
+    return this.data.map((model) => model.get() as T);
+  }
+
   async fetch(params?: AxiosRequestConfig["params"]) {
     try {
       const response = await api.get<T[]>(this.url, {
@@ -34,23 +38,21 @@ export class Collection<T> {
     }
   }
 
-  async get(primaryKey: number | string) {
+  async fetchOne(primaryKey: number | string) {
     try {
-      const cachedData = this.list.find((data) => data.id === primaryKey);
-
-      if (cachedData) return cachedData;
-
-      const response = await api.get(`${this.url}/${primaryKey}`);
+      const response = await api.get<T>(`${this.url}/${primaryKey}`);
 
       return this.createModel(response.data);
-    } catch (err) {
-      throw new Error("Wasn't possible to connect to this api's endpoint.");
+    } catch (error) {
+      throw new Error(`Failed to fetch data! \n\n ${error.message}`);
     }
   }
 
+  get(primaryKey: number | string) {
+    return this.list.find((data) => data.id === primaryKey);
+  }
+
   private createModel(initialData: T) {
-    const model = new Model<T>({ url: this.url });
-    model.setData(initialData);
-    return model;
+    return new Model<T>({ url: this.url }, initialData);
   }
 }

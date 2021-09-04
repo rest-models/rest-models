@@ -10,7 +10,7 @@ export declare class Model<T> {
     private loading;
     private modelConfig;
     private setPastData;
-    constructor(modelConfig: ModelConfig);
+    constructor(modelConfig: ModelConfig, data?: T);
     private setLoading;
     get isLoading(): boolean;
     get id(): any;
@@ -23,6 +23,7 @@ export declare class Model<T> {
      * Requests
      */
     save(): Promise<void>;
+    flush(): Promise<void>;
     remove(): Promise<void>;
     /**
      * Changes
